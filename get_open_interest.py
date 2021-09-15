@@ -70,7 +70,7 @@ def extract_open_interest(text):
 
 
 html = get_html(url)
-text = parse_to_file(html)
+text = parse(html)
 output = extract_open_interest(text)
 print(output)
 with open("download_open_interest/outputs/open_interests.txt", "w") as text_file:
