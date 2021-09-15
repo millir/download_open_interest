@@ -1,47 +1,7 @@
-import requests
-from bs4 import BeautifulSoup
-import logging
-
+from open_interest import OpenInterest
+from utils import parse, get_html
 
 url = 'https://www.cftc.gov/dea/futures/deanymesf.htm'
-
-
-
-class OpenInterest:
-    def __init__(self) -> None:
-        self.contract = None
-        self.open_interest = None
-    
-    def add_contract(self, contract: str):
-        self.contract = contract
-
-    def add_open_interest(self, open_interest: int):
-        self.open_interest = open_interest
-
-    def validate_values_are_set(self):
-        if self.contract and self.open_interest:
-            return True
-        else:
-            return False
-
-
-def get_html(url):
-    response = requests.get(url)
-    try:
-        response.raise_for_status()
-    except requests.exceptions.RequestException as e:
-        logging.error("Error during GET request{e}".format(e))
-
-    text = response.text
-    return text
-
-
-def parse(html):
-    soup = BeautifulSoup(html, features="html.parser")
-    text = soup.get_text()
-    lines = (line.strip() for line in text.splitlines())  # break into lines and remove leading and trailing space on each
-    parsed_text = '\n'.join(chunk for chunk in lines if chunk)  # drop blank lines
-    return parsed_text
 
 
 def extract_open_interest(text):
@@ -61,7 +21,8 @@ def extract_open_interest(text):
             open_interest_value = open_interest_string.strip().replace(',','')  # remove spaces and comma from number
             oi.add_open_interest(open_interest=open_interest_value)
     
-        if oi.validate_values_are_set():
+        # class and validation was done to verify that both contract and open_interest exist in source data
+        if oi.validate_values_are_set(): 
             output += oi.contract + ','
             output += oi.open_interest + '\n'
             oi = OpenInterest()  # overwrite with new instance, for new data
@@ -69,9 +30,10 @@ def extract_open_interest(text):
     return output
 
 
-html = get_html(url)
-text = parse(html)
-output = extract_open_interest(text)
-print(output)
-with open("download_open_interest/outputs/open_interests.txt", "w") as text_file:
-    text_file.write(output)
+if __name__ == '__main___':
+    html = get_html(url)
+    text = parse(html)
+    output = extract_open_interest(text)
+    print(output)
+    with open("outputs/open_interests.txt", "w") as text_file:
+        text_file.write(output)
